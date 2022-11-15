@@ -8,8 +8,7 @@ from kivy.uix.image import Image
 from kivymd.uix.button import MDFlatButton,MDFillRoundFlatButton
 from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.textfield import MDTextField
-
-
+from plyer import filechooser
 class MyApp(MDApp):
     def btnfunc(self, obj):
         print("button is pressed!!")
@@ -28,10 +27,9 @@ class MyApp(MDApp):
         ))
         screen.add_widget(Button(
             background_normal= 'upload_b.png',
-
             size_hint=(.3, .3),
             pos_hint={"x": 0.35, "y": 0.4},
-            on_release=self.btnfunc,
+            on_release=self.file_chooser,
 
         ))
         screen.add_widget(MDFillRoundFlatButton(
@@ -41,5 +39,7 @@ class MyApp(MDApp):
             on_release=self.btnfunc,
         ))
         return screen
+    def file_chooser(self,obj):
+        filechooser.open_file()
 
 MyApp().run()
