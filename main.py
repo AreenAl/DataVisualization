@@ -14,9 +14,63 @@ from plyer import filechooser
 from kivy.lang import Builder
 from Converter import ImageConverter
 import os
+
+screen_helper = """
+ScreenManager:
+    FirstPage:
+    SecondPage:
+<FirstPage>:
+    name: 'First'
+    MDTopAppBar:
+        title:"Image to STL"
+        pos_hint:{"top":1}
+    MDLabel:
+        text:"upload photo to convert to stl file"
+        pos_hint:{"center_x":0.8,"center_y":0.8}
+        theme_text_color: "Custom"
+        text_color:"gray"
+        font_size:"25"  
+    Button:
+        background_normal: 'upload_b.png'
+        pos_hint: {'center_x':0.5,'center_y':0.5}
+        size_hint: .3, .3
+        on_press: app.file_chooser()
+    MDRectangleFlatButton:
+        text: 'Convert'
+        pos_hint: {'center_x':0.5,'center_y':0.2}
+        on_press: app.btnfunc();root.manager.current = 'Second'
+<SecondPage>:
+    name: 'Second'
+    MDLabel:
+        text: 'SecondPage'
+        halign: 'center'
+    MDRectangleFlatButton:
+        text: 'Download'
+        pos_hint: {'center_x':0.35,'center_y':0.4}
+    MDRectangleFlatButton:
+        text: 'Show'
+        pos_hint: {'center_x':0.65,'center_y':0.4}
+    MDRectangleFlatButton:
+        text: 'Back'
+        pos_hint: {'center_x':0.5,'center_y':0.1}
+        on_press: root.manager.current = 'First'
+
+"""
+
+class FirstPage(Screen):
+    pass
+class SecondPage(Screen):
+    pass
+
+# Create the screen manager
+sm = ScreenManager()
+sm.add_widget(FirstPage(name='First'))
+sm.add_widget(SecondPage(name='Second'))
+
+
 class MyApp(MDApp):
     screen = Screen()
-    def btnfunc(self, obj):
+    def btnfunc(self):
         print("button is pressed!!")
         if self.imagePath != '':
             ImageConverter(self.imagePath,self.DestDir)
@@ -27,28 +81,9 @@ class MyApp(MDApp):
         self.toolbar=MDTopAppBar(title="Image to STL")
         self.toolbar.pos_hint={"top":1}
         self.screen.add_widget(self.toolbar)
-        self.screen.add_widget(MDLabel(
-            text="upload photo to convert to stl file",
-            pos_hint={"center_x":0.51,"center_y":0.8},
-            theme_text_color= "Custom",
-            text_color="slategrey",
-            font_style="H5",
-        ))
-        self.screen.add_widget(Button(
-            background_normal= 'upload_b.png',
-            size_hint=(.3, .3),
-            pos_hint={"x": 0.35, "y": 0.4},
-            on_release=self.file_chooser,
-
-        ))
-        self.screen.add_widget(MDFillRoundFlatButton(
-            text="CONVERT",
-            font_size=20,
-            pos_hint={"center_x":0.5,"center_y":0.25},
-            on_release=self.btnfunc,
-        ))
-        return self.screen
-    def file_chooser(self,obj):
+        screen = Builder.load_string(screen_helper)
+        return screen
+    def file_chooser(self):
 
         file=filechooser.open_file()
         print(file[0])
