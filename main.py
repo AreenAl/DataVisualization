@@ -12,11 +12,17 @@ from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.textfield import MDTextField
 from plyer import filechooser
 from kivy.lang import Builder
+from Converter import ImageConverter
+import os
 class MyApp(MDApp):
     screen = Screen()
     def btnfunc(self, obj):
         print("button is pressed!!")
+        if self.imagePath != '':
+            ImageConverter(self.imagePath,self.DestDir)
     def build(self):
+        self.imagePath = ''
+        self.DestDir = os.getcwd()
         self.theme_cls.primary_palette="Teal"
         self.toolbar=MDTopAppBar(title="Image to STL")
         self.toolbar.pos_hint={"top":1}
@@ -45,12 +51,8 @@ class MyApp(MDApp):
     def file_chooser(self,obj):
 
         file=filechooser.open_file()
-        a=' '.join(file)
-        b="'"+a+"'"
-        '''wimg = Image(source='upload_b.png')
-        #s = Widget()
-        #s.add_widget(wimg)
-        self.screen.add_widget(wimg)
-        '''
+        print(file[0])
+        self.imagePath = file[0]
+
 if __name__ == '__main__':
     MyApp().run()
