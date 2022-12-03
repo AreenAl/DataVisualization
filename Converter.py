@@ -7,7 +7,7 @@ from stl import mesh
 import pathlib
 import os
 
-#image - stl converter function
+#image to stl converter function
 def ImageConverter(path,destDir) :
     """Read Image from file and Display"""
     img = Image.open(path)
@@ -50,9 +50,6 @@ def ImageConverter(path,destDir) :
     max_size=(500,500)
     max_height=10
     min_height=0
-
-    #height=0 for minPix
-    #height=maxHeight for maxPIx
 
     grey_img.thumbnail(max_size)
     imageNp = np.array(grey_img)

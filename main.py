@@ -34,9 +34,10 @@ ScreenManager:
         background_normal: 'upload_b.png'
         pos_hint: {'center_x':0.5,'center_y':0.5}
         size_hint: .3, .3
-        on_press: app.file_chooser()
+        on_press: app.file_chooser();self.background_normal=app.imagePath;root.manager.screens[1].ids.img.source = app.imagePath
     MDRectangleFlatButton:
         text: 'Convert'
+        font_size:20
         pos_hint: {'center_x':0.5,'center_y':0.2}
         on_press: app.btnfunc();root.manager.current = 'Second'
 <SecondPage>:
@@ -44,18 +45,19 @@ ScreenManager:
     MDTopAppBar:
         title:"The Stl File"
         pos_hint:{"top":1}
-    Button:
-        background_normal: 'upload_b.png'
+    Image:
+        id:img
+        source: ''
         pos_hint: {'center_x':0.5,'center_y':0.65}
-        size_hint: .3, .3
+        size_hint: .4, .4
     MDRectangleFlatButton:
-        text: 'Download'
-        pos_hint: {'center_x':0.35,'center_y':0.4}
-    MDRectangleFlatButton:
-        text: 'Show'
-        pos_hint: {'center_x':0.65,'center_y':0.4}
+        text: 'Download the stl file'
+        font_size:20
+        pos_hint: {'center_x':0.5,'center_y':0.3}
+        on_press: root.manager.current = 'First'
     MDRectangleFlatButton:
         text: 'Back'
+        font_size:20
         pos_hint: {'center_x':0.5,'center_y':0.1}
         on_press: root.manager.current = 'First'
 
@@ -88,7 +90,6 @@ class MyApp(MDApp):
         screen = Builder.load_string(screen_helper)
         return screen
     def file_chooser(self):
-
         file=filechooser.open_file()
         print(file[0])
         self.imagePath = file[0]
