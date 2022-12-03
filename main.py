@@ -26,9 +26,9 @@ ScreenManager:
         pos_hint:{"top":1}
     MDLabel:
         text:"upload photo to convert to stl file"
-        pos_hint:{"center_x":0.8,"center_y":0.8}
+        pos_hint:{"center_x":0.75,"center_y":0.8}
         theme_text_color: "Custom"
-        text_color:"gray"
+        text_color: 200, 140, 140
         font_size:"25"  
     Button:
         background_normal: 'upload_b.png'
@@ -41,9 +41,13 @@ ScreenManager:
         on_press: app.btnfunc();root.manager.current = 'Second'
 <SecondPage>:
     name: 'Second'
-    MDLabel:
-        text: 'SecondPage'
-        halign: 'center'
+    MDTopAppBar:
+        title:"The Stl File"
+        pos_hint:{"top":1}
+    Button:
+        background_normal: 'upload_b.png'
+        pos_hint: {'center_x':0.5,'center_y':0.65}
+        size_hint: .3, .3
     MDRectangleFlatButton:
         text: 'Download'
         pos_hint: {'center_x':0.35,'center_y':0.4}
