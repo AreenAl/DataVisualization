@@ -80,14 +80,14 @@ def ImageConverter(path,destDir) :
             face1 = np.array([vertice1,vertice2,vertice3])
 
         # create face 2 
-        vertice1 = vertices[y][x]
-        vertice2 = vertices[y][x+1]
-        vertice3 = vertices[y+1][x+1]
+            vertice1 = vertices[y][x]
+            vertice2 = vertices[y][x+1]
+            vertice3 = vertices[y+1][x+1]
 
-        face2 = np.array([vertice1,vertice2,vertice3])
+            face2 = np.array([vertice1,vertice2,vertice3])
 
-        faces.append(face1)
-        faces.append(face2)
+            faces.append(face1)
+            faces.append(face2)
 
     print(f"number of faces: {len(faces)}")
     facesNp = np.array(faces)

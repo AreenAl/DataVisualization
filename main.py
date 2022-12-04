@@ -6,7 +6,7 @@ from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
-from kivy.uix.image import Image, AsyncImage
+from kivy.uix.image import AsyncImage
 from kivymd.uix.button import MDFlatButton,MDFillRoundFlatButton
 from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.textfield import MDTextField
