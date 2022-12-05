@@ -1,3 +1,5 @@
+
+from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
 from kivymd.uix.label import MDLabel
@@ -13,7 +15,8 @@ from kivymd.uix.textfield import MDTextField
 from plyer import filechooser
 from kivy.lang import Builder
 from Converter import ImageConverter
-import os
+import os,shutil
+
 
 screen_helper = """
 ScreenManager:
@@ -54,7 +57,10 @@ ScreenManager:
         text: 'Download the stl file'
         font_size:20
         pos_hint: {'center_x':0.5,'center_y':0.3}
-        on_press: root.manager.current = 'First'
+        on_press:
+            app.directory_chooser();
+            if app.temp!='true':print(app.temp)
+            else:root.manager.current = 'First'
     MDRectangleFlatButton:
         text: 'Back'
         font_size:20
@@ -82,6 +88,7 @@ class MyApp(MDApp):
             ImageConverter(self.imagePath,self.DestDir)
     def build(self):
         self.imagePath = ''
+        self.temp=''
         self.DestDir = os.getcwd()
         self.theme_cls.primary_palette="Teal"
         self.toolbar=MDTopAppBar(title="Image to STL")
@@ -91,8 +98,29 @@ class MyApp(MDApp):
         return screen
     def file_chooser(self):
         file=filechooser.open_file()
-        print(file[0])
         self.imagePath = file[0]
+    def directory_chooser(self):
+        file=filechooser.open_file(file_name="surface.stl")
+        directoryPath = file[0]
+        finalPath = self.DestDir + f'/stlFiles/surface.stl'
+        popup = Popup(title='Error message!!',
+                      content=MDLabel(text='you must write the name of the file with suffix .stl'
+                                      ,halign='center'),
+                      size_hint=(None, None), size=(450, 150),background='white',title_color='black')
+
+        if '.' not in directoryPath:
+            directoryPath +='.stl'
+        print(directoryPath)
+
+        if '.stl' in directoryPath:
+            self.temp='true'
+        else:
+            self.temp='false'
+
+        if self.temp=='true':
+            os.replace(finalPath, directoryPath)
+        else:
+            popup.open()
 
 if __name__ == '__main__':
     MyApp().run()

@@ -99,11 +99,13 @@ def ImageConverter(path,destDir) :
     # Write the mesh to file "cube.stl"
     print(destDir)
     filenumber = 1
-    finalPath = destDir + f'/stlFiles/surface{filenumber}.stl'
+    finalPath = destDir + f'/stlFiles/surface.stl'
+
+    '''
     while(os.path.exists(destDir + f'/stlFiles/surface{filenumber}.stl')):
         filenumber+=1
         finalPath = destDir + f'/stlFiles/surface{filenumber}.stl'
-
+'''
     surface.save(finalPath)
     print(surface)
 
