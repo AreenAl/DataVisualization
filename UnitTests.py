@@ -22,4 +22,4 @@ class MyTestCase(GraphicUnitTest):
         window = MyApp()
         window.build()
         ImageConverter(window.DestDir + "/test_pic.png", window.DestDir)
-        self.assertEqual(os.path.exists(window.DestDir + "/surface.stl"), True)
+        self.assertEqual(os.path.exists(window.DestDir + "/stlFiles/surface.stl"), True)
