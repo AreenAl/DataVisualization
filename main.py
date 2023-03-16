@@ -13,9 +13,8 @@ from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.textfield import MDTextField
 from plyer import filechooser
 from kivy.lang import Builder
-from Converter import ImageConverter
+from Converter import ImageConverter,PDFConverter
 import os,shutil
-
 
 screen_helper = """
 ScreenManager:
@@ -36,7 +35,7 @@ ScreenManager:
         background_normal: 'upload_b.png'
         pos_hint: {'center_x':0.5,'center_y':0.5}
         size_hint: .3, .3
-        on_press: app.file_chooser();self.background_normal=app.imagePath;root.manager.screens[1].ids.img.source = app.imagePath
+        on_press: app.file_chooser();self.background_normal=app.imagepdf;root.manager.screens[1].ids.img.source = app.imagepdf
     MDRectangleFlatButton:
         text: 'Convert'
         font_size:20
@@ -78,15 +77,20 @@ sm = ScreenManager()
 sm.add_widget(FirstPage(name='First'))
 sm.add_widget(SecondPage(name='Second'))
 
-
 class MyApp(MDApp):
     screen = Screen()
     def btnfunc(self):
         print("button is pressed!!")
-        if self.imagePath != '':
+        print(self.imagePath)
+        if '.pdf' in self.imagePath and self.imagePath != '':
+            PDFConverter(self.imagePath)
+        elif self.imagePath != '':
             ImageConverter(self.imagePath,self.DestDir)
+
+
     def build(self):
         self.imagePath = ''
+        self.imagepdf=''
         self.temp=''
         self.DestDir = os.getcwd()
         self.theme_cls.primary_palette="Teal"
@@ -98,6 +102,10 @@ class MyApp(MDApp):
     def file_chooser(self):
         file=filechooser.open_file()
         self.imagePath = file[0]
+        if '.pdf' in self.imagePath and self.imagePath != '':
+            self.imagepdf = 'PDF.svg'
+        else:
+            self.imagepdf=self.imagePath
     def directory_chooser(self):
         file=filechooser.open_file(file_name="surface.stl")
         directoryPath = file[0]
@@ -106,11 +114,9 @@ class MyApp(MDApp):
                       content=MDLabel(text='you must write the name of the file with suffix .stl'
                                       ,halign='center'),
                       size_hint=(None, None), size=(450, 150),background='white',title_color='black')
-
         if '.' not in directoryPath:
             directoryPath +='.stl'
         print(directoryPath)
-
         if '.stl' in directoryPath:
             self.temp='true'
         else:

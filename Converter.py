@@ -1,61 +1,28 @@
 import numpy as np
 from stl import mesh
-from PIL import Image 
-import matplotlib.pyplot as plt 
-import numpy as np
-from stl import mesh
+from PIL import Image
+import matplotlib.pyplot as plt
 import pathlib
 import os
+import PyPDF2
+
 
 #image to stl converter function
 def ImageConverter(path,destDir) :
     """Read Image from file and Display"""
     img = Image.open(path)
-    plt.imshow(img)
 
-    """Conver Image to GreyScale"""
-
-    grey_img =  Image.open(path).convert("L")
-    plt.imshow(grey_img)
-
-    """create simple 2d square surface with 2 traingles"""
-
-
-
-    # Define the 4 vertices of the cube
-    vertices = np.array([\
-        [-1, -1, -1],
-        [+1, -1, -1],
-        [+1, +1, -1],
-        [-1, +1, -1]])
-
-    # Define the 2 triangles composing the cube
-    faces = np.array([\
-        [1,2,3],
-        [3,1,0]])
-
-    # Create the mesh
-    cube = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-    for i, f in enumerate(faces):
-        for j in range(3):
-            cube.vectors[i][j] = vertices[f[j],:]
-
-    # Write the mesh to file "cube.stl"
-    cube.save('surface.stl')
-
+    """Convert Image to GreyScale"""
+    grey_img =  img.convert("L")
     """Create syrface 1000x5000 with N traingles"""
-
-    grey_img = Image.open(path).convert('L')
 
     max_size=(500,500)
     max_height=10
     min_height=0
-
     grey_img.thumbnail(max_size)
     imageNp = np.array(grey_img)
     maxPix=imageNp.max()
     minPix=imageNp.min()
-
 
     print(imageNp)
     (ncols,nrows)=grey_img.size
@@ -67,7 +34,10 @@ def ImageConverter(path,destDir) :
             pixelIntensity = imageNp[y][x]
             z = (pixelIntensity * max_height) / maxPix
             #print(imageNp[y][x])
-            vertices[y][x]=(x, y, z)
+            if z<1 or z is None:
+                vertices[y][x] = (x, y,10)
+            else:
+                vertices[y][x]=(x, y, z)
 
     faces=[]
 
@@ -96,18 +66,29 @@ def ImageConverter(path,destDir) :
     for i, f in enumerate(faces):
         for j in range(3):
             surface.vectors[i][j] = facesNp[i][j]
-    # Write the mesh to file "cube.stl"
-    print(destDir)
-    filenumber = 1
     finalPath = destDir + f'/stlFiles/surface.stl'
-
-    '''
-    while(os.path.exists(destDir + f'/stlFiles/surface{filenumber}.stl')):
-        filenumber+=1
-        finalPath = destDir + f'/stlFiles/surface{filenumber}.stl'
-'''
     surface.save(finalPath)
     print(surface)
 
+def PDFConverter(path):
+    print('aaaaaa')
+    pdf_file = open(path, 'rb')
 
+    # Create a PDF reader object
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
 
+    # Loop through each page in the PDF file
+    for page_num in range(pdf_reader.numPages):
+        # Get the current page
+        page = pdf_reader.getPage(page_num)
+
+        # Loop through each object on the page
+        for obj in page['/Resources']['/XObject'].values():
+            # Check if the object is an image
+            if obj['/Subtype'] == '/Image':
+                # Extract the image data
+                img_data = obj.getData()
+
+                # Save the image to a file
+                with open('image{}.png'.format(page_num), 'wb') as img_file:
+                    img_file.write(img_data)
