@@ -4,7 +4,8 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import pathlib
 import os
-import PyPDF2
+import fitz
+
 
 
 #image to stl converter function
@@ -71,24 +72,40 @@ def ImageConverter(path,destDir) :
     print(surface)
 
 def PDFConverter(path):
-    print('aaaaaa')
-    pdf_file = open(path, 'rb')
+    # Define path for saved images
+    images_path = 'images/'
 
-    # Create a PDF reader object
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    # Open PDF file
+    pdf_file = fitz.open(path)
 
-    # Loop through each page in the PDF file
-    for page_num in range(pdf_reader.numPages):
-        # Get the current page
-        page = pdf_reader.getPage(page_num)
+    # Get the number of pages in PDF file
+    page_nums = len(pdf_file)
 
-        # Loop through each object on the page
-        for obj in page['/Resources']['/XObject'].values():
-            # Check if the object is an image
-            if obj['/Subtype'] == '/Image':
-                # Extract the image data
-                img_data = obj.getData()
+    # Create empty list to store images information
+    images_list = []
 
-                # Save the image to a file
-                with open('image{}.png'.format(page_num), 'wb') as img_file:
-                    img_file.write(img_data)
+    # Extract all images information from each page
+    for page_num in range(page_nums):
+        page_content = pdf_file[page_num]
+        images_list.extend(page_content.get_images())
+
+    # Raise error if PDF has no images
+    if len(images_list) == 0:
+        raise ValueError(f'No images found in {path}')
+
+    # Save all the extracted images
+    for i, img in enumerate(images_list, start=1):
+        # Extract the image object number
+        xref = img[0]
+        # Extract image
+        base_image = pdf_file.extract_image(xref)
+        # Store image bytes
+        image_bytes = base_image['image']
+        # Store image extension
+        image_ext = base_image['ext']
+        # Generate image file name
+        image_name = str(i) + '.' + image_ext
+        # Save image
+        with open(os.path.join(images_path, image_name), 'wb') as image_file:
+            image_file.write(image_bytes)
+            image_file.close()
