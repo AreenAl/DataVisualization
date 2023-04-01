@@ -1,75 +1,70 @@
 import numpy as np
+# pip3 install numpy
 from stl import mesh
+# pip3 install numpy-stl
 from PIL import Image
 import matplotlib.pyplot as plt
 import pathlib
 import os
 import fitz
+import cv2
+# pip install opencv-python opencv-python-headless
+import pyvista as pv
+# pip install pyvista
 
 
-
-#image to stl converter function
-def ImageConverter(path,destDir) :
+# image to stl converter function
+def ImageConverter(path, destDir):
     """Read Image from file and Display"""
     img = Image.open(path)
+    # enhance the image graph quality and switch black to white
+    # Load the image
+    img = cv2.imread(path)
 
-    """Convert Image to GreyScale"""
-    grey_img =  img.convert("L")
-    """Create syrface 1000x5000 with N traingles"""
+    # Convert the image to grayscale
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    max_size=(500,500)
-    max_height=10
-    min_height=0
-    grey_img.thumbnail(max_size)
-    imageNp = np.array(grey_img)
-    maxPix=imageNp.max()
-    minPix=imageNp.min()
+    # Threshold the image to get pure black and white
+    _, bw_img = cv2.threshold(gray_img, 212, 255, cv2.THRESH_BINARY)
 
-    print(imageNp)
-    (ncols,nrows)=grey_img.size
+    image = Image.fromarray(bw_img).convert('L')
+    data = np.array(image)
+    print('data shape')
+    # Create a mesh grid from the data
+    x1, y1 = np.meshgrid(np.arange(data.shape[1]), np.arange(data.shape[0]))
+    # Normalize the data to a range of 0 to 1 # to increase and decrease the density of the Z index
+    z1 = (data/255)*8
 
-    vertices=np.zeros((nrows,ncols,3))
+    grid1 = pv.StructuredGrid(x1, y1, z1)
 
-    for x in range(0, ncols):
-        for y in range(0, nrows):
-            pixelIntensity = imageNp[y][x]
-            z = (pixelIntensity * max_height) / maxPix
-            #print(imageNp[y][x])
-            if z<1 or z is None:
-                vertices[y][x] = (x, y,10)
-            else:
-                vertices[y][x]=(x, y, z)
+    # Define the dimensions of the grid
+    dims = (10, 10, 10)
 
-    faces=[]
+    # Define the coordinates of the points of the grid
+    print(grid1.dimensions[0])
+    print(grid1.dimensions[1])
+    x = np.linspace(-1, grid1.dimensions[1], dims[0])
+    y = np.linspace(-1, grid1.dimensions[0], dims[1])
 
-    for x in range(0, ncols - 1):
-        for y in range(0, nrows - 1):
-            # create face 1
-            vertice1 = vertices[y][x]
-            vertice2 = vertices[y+1][x]
-            vertice3 = vertices[y+1][x+1]
-            face1 = np.array([vertice1,vertice2,vertice3])
+    z = np.linspace(-1, 3, dims[2])  # density of the floor
+    xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')  # building the floor
+    points = np.column_stack((xx.ravel(), yy.ravel(), zz.ravel()))
 
-        # create face 2 
-            vertice1 = vertices[y][x]
-            vertice2 = vertices[y][x+1]
-            vertice3 = vertices[y+1][x+1]
-
-            face2 = np.array([vertice1,vertice2,vertice3])
-
-            faces.append(face1)
-            faces.append(face2)
-
-    print(f"number of faces: {len(faces)}")
-    facesNp = np.array(faces)
-    # Create the mesh
-    surface = mesh.Mesh(np.zeros(facesNp.shape[0], dtype=mesh.Mesh.dtype))
-    for i, f in enumerate(faces):
-        for j in range(3):
-            surface.vectors[i][j] = facesNp[i][j]
+    # Create the structured grid
+    grid = pv.StructuredGrid()
+    grid.dimensions = dims
+    grid.points = points
+    print(grid)  # bulding the floor
+    grid1 = grid1.flip_z()
+    comp = grid+grid1  # compine the floor and the object
+    comp = comp.flip_z()  # to flip the final object for the printer
+    comp = comp.rotate_x(180)
+    iso = comp.extract_geometry()
+    iso.smooth(n_iter=100)
     finalPath = destDir + f'/stlFiles/surface.stl'
-    surface.save(finalPath)
-    print(surface)
+    iso.save(finalPath)
+    print(iso)
+
 
 def PDFConverter(path):
     # Define path for saved images
