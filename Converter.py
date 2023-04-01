@@ -60,7 +60,7 @@ def ImageConverter(path, destDir):
     comp = comp.flip_z()  # to flip the final object for the printer
     comp = comp.rotate_x(180)
     iso = comp.extract_geometry()
-    iso.smooth(n_iter=100)
+    iso.smooth(n_iter=100) # smooth the surface
     finalPath = destDir + f'/stlFiles/surface.stl'
     iso.save(finalPath)
     print(iso)
