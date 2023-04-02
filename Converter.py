@@ -1,3 +1,5 @@
+import shutil
+
 import numpy as np
 # pip3 install numpy
 from stl import mesh
@@ -9,10 +11,14 @@ from PyPDF2 import PdfReader
 import shutil
 import os
 import fitz
+<<<<<<< Updated upstream
 import cv2
 # pip install opencv-python opencv-python-headless
 import pyvista as pv
 # pip install pyvista
+=======
+from PyPDF2 import PdfReader
+>>>>>>> Stashed changes
 
 
 # image to stl converter function
@@ -64,6 +70,7 @@ def ImageConverter(path, destDir):
     iso = comp.extract_geometry()
     iso.smooth(n_iter=100) # smooth the surface
     finalPath = destDir + f'/stlFiles/surface.stl'
+<<<<<<< Updated upstream
     iso.save(finalPath)
     print(iso)
 
@@ -81,3 +88,65 @@ def PDFConverter(path,DestDir):
             old=os.path.join(Dir, str(count-1) +img.name)
             finalPath = DestDir + f'/images/'+str(count-1) +img.name
             shutil.move(old, finalPath)
+=======
+    surface.save(finalPath)
+    print(surface)
+from pikepdf import Pdf,Name,PdfImage
+def PDFConverter(path,DestDir):
+    reader = PdfReader(path)
+    images_path= 'images/'
+    count = 0
+    for i in range(len(reader.pages)):
+        page = reader.pages[i]
+        for img in page.images:
+            with open(str(count) +img.name, "wb") as fp:
+                fp.write(img.data)
+                count += 1
+
+            Dir=os.path.abspath(os.getcwd())
+            old=os.path.join(Dir, str(count-1) +img.name)
+            finalPath = DestDir + f'/images/'+str(count-1) +img.name
+            shutil.move(old, finalPath)
+
+                #os.replace(DestDir, images_path)
+
+    '''
+    for image_file_object in page.images:
+        with open(str(count) + image_file_object.name, "wb") as fp:
+            fp.write(image_file_object.data)
+            count += 1
+
+
+
+
+
+
+
+
+    
+    
+
+    for page_index in range(len(pdf_file)):
+
+        # get the page itself
+        page = pdf_file[page_index]
+        image_list = page.get_images()
+
+        # printing number of images found in this page
+        if image_list:
+            print(
+                f"[+] Found a total of {len(image_list)} images in page {page_index}")
+        else:
+            print("[!] No images found on page", page_index)
+        for image_index, img in enumerate(page.get_images(), start=1):
+            # get the XREF of the image
+            xref = img[0]
+
+            # extract the image bytes
+            base_image = pdf_file.extract_image(xref)
+            image_bytes = base_image["image"]
+
+            # get the image extension
+            image_ext = base_image["ext"]
+    '''
+>>>>>>> Stashed changes

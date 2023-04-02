@@ -22,9 +22,12 @@ import os, shutil
 
 screen_helper = """
 #:import Label kivy.uix.label.Label
+<<<<<<< Updated upstream
 #:import Image kivy.uix.image.Image
 #:import Button kivy.uix.button.Button
 
+=======
+>>>>>>> Stashed changes
 ScreenManager:
     FirstPage:
     SecondPage:
@@ -50,7 +53,11 @@ ScreenManager:
         text: 'Convert'
         font_size:20
         pos_hint: {'center_x':0.5,'center_y':0.2}
+<<<<<<< Updated upstream
         on_press: app.btnfunc();root.manager.screens[1].ids.img.source = app.imagepdf
+=======
+        on_press: app.btnfunc()
+>>>>>>> Stashed changes
 <SecondPage>:
     name: 'Second'
     MDTopAppBar:
@@ -76,6 +83,7 @@ ScreenManager:
         on_press: root.manager.current = 'First'
 <ThirdPage>:
     name: 'Third'
+<<<<<<< Updated upstream
     BoxLayout:
         orientation: "vertical"
         MDTopAppBar:
@@ -100,6 +108,22 @@ ScreenManager:
 
 
 
+=======
+    MDTopAppBar:
+        title:"choose image to convert it"
+        pos_hint:{"top":1}
+    BoxLayout:
+        orientation: 'horizontal'
+        on_parent:
+            for img in root.imag: txt = "iiiii"
+    Button:
+        background_normal: root.imag[0]
+        pos_hint: {'center_x':0.5}
+        size_hint: .3, .3
+    
+    
+            
+>>>>>>> Stashed changes
 
 """
 
@@ -110,6 +134,12 @@ class FirstPage(Screen):
 
 class SecondPage(Screen):
     pass
+class ThirdPage(Screen):
+    imag=os.listdir('images')
+    for i in range(len(imag)):
+        temp=imag[i]
+        imag[i]='images/'+temp
+    print(imag)
 
 class ThirdPage(Screen):
     '''imag = os.listdir('images')
@@ -124,7 +154,10 @@ sm.add_widget(FirstPage(name='First'))
 sm.add_widget(SecondPage(name='Second'))
 sm.add_widget(ThirdPage(name='Third'))
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 
 class MyApp(MDApp):
     screen = Screen()
@@ -133,11 +166,20 @@ class MyApp(MDApp):
         print("button is pressed!!")
         print(self.imagePath)
         if '.pdf' in self.imagePath and self.imagePath != '':
+<<<<<<< Updated upstream
             PDFConverter(self.imagePath, self.DestDir)
             self.root.current = 'Third'
         elif self.imagePath != '':
             ImageConverter(self.imagePath, self.DestDir)
             self.root.current = 'Second'
+=======
+            PDFConverter(self.imagePath,self.DestDir)
+            self.root.current='Third'
+        elif self.imagePath != '':
+            ImageConverter(self.imagePath,self.DestDir)
+            self.root.current='Second'
+
+>>>>>>> Stashed changes
     def build(self):
         self.imagePath = ''
         self.imagepdf = ''
