@@ -25,8 +25,17 @@ def ImageConverter(path, destDir):
     # Load the image
     img = cv2.imread(path)
 
+    # Get the current size of the image
+    height, width = img.shape[:2]
+
+    # Set the new size of the image to be 50% of the current size
+    new_size = (int(width * 0.5), int(height * 0.5))
+
+    # Resize the image to the new size using the resize() function
+    minimized_image = cv2.resize(img, new_size)
+
     # Convert the image to grayscale
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_img = cv2.cvtColor(minimized_image, cv2.COLOR_BGR2GRAY)
 
     # Threshold the image to get pure black and white
     _, bw_img = cv2.threshold(gray_img, 212, 255, cv2.THRESH_BINARY)
@@ -49,18 +58,17 @@ def ImageConverter(path, destDir):
     print(grid1.dimensions[1])
     x = np.linspace(-1, grid1.dimensions[1], dims[0])
     y = np.linspace(-1, grid1.dimensions[0], dims[1])
-
     z = np.linspace(-1, 3, dims[2])  # density of the floor
     xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')  # building the floor
     points = np.column_stack((xx.ravel(), yy.ravel(), zz.ravel()))
-
     # Create the structured grid
     grid = pv.StructuredGrid()
     grid.dimensions = dims
     grid.points = points
     print(grid)  # bulding the floor
     grid1 = grid1.flip_z()
-    comp = grid+grid1  # compine the floor and the object
+
+    comp = grid1+grid  # compine the floor and the object
     comp = comp.flip_z()  # to flip the final object for the printer
     comp = comp.rotate_x(180)
     iso = comp.extract_geometry()
@@ -71,14 +79,20 @@ def ImageConverter(path, destDir):
 def PDFConverter(path,DestDir):
     reader = PdfReader(path)
     count = 0
+    directory = DestDir + f'/images/'  # directory name
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)  # get the full file path
+        if os.path.isfile(file_path):  # check if the path is a file
+            os.remove(file_path)
     for i in range(len(reader.pages)):
         page = reader.pages[i]
         for img in page.images:
-            with open(str(count) +img.name, "wb") as fp:
+            with open(os.path.join(DestDir,'images',str(count)+img.name), "wb") as fp:
                 fp.write(img.data)
                 count += 1
 
-            Dir=os.path.abspath(os.getcwd())
-            old=os.path.join(Dir, str(count-1) +img.name)
-            finalPath = DestDir + f'/images/'+str(count-1) +img.name
-            shutil.move(old, finalPath)
+    img = os.listdir(DestDir + f'/images/')
+    for i in range(len(img)):
+        temp = img[i]
+        img[i] = 'images\\' + temp
+    return img
