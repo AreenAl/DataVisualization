@@ -1,8 +1,8 @@
 import glob
-
 import plyer
-import pyrebase
-from kivy.uix.image import AsyncImage
+from firebase import firebase
+from firebase_admin import credentials, initialize_app, storage
+from kivy.uix.image import AsyncImage, Image
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
@@ -205,12 +205,23 @@ ScreenManager:
     MDTopAppBar:
         title:"Image to STL"
         pos_hint:{"top":1}
-    MDLabel:
-        text:" jjjj"
-        pos_hint:{"center_x":0.75,"center_y":0.8}
-        theme_text_color: "Custom"
-        text_color: 200, 140, 140
-        font_size:"25"
+    MDFloatLayout:
+        MDLabel:
+            text:"fill your data to signup"
+            pos_hint:{"center_x":0.835,"center_y":0.86}
+            theme_text_color: "Custom"
+            text_color: (200, 140, 140)
+            font_size:"25"
+    ScrollView:
+        size: self.size
+        pos_hint:{"center_y":.31}
+        top: 20
+        id:kk
+
+
+
+                
+            
 <FirstPage>:
     name: 'First'
     MDBottomNavigation:
@@ -267,6 +278,12 @@ ScreenManager:
                 theme_text_color: "Custom"
                 text_color: 200, 140, 140
                 font_size:"25"
+            ScrollView:
+                size: self.size
+                pos_hint:{"center_y":.22}
+                top: 20
+                id:scroll
+
         MDBottomNavigationItem:
             name: "screen4"
             text: "LogOut"
@@ -320,6 +337,7 @@ ScreenManager:
                 top: self.height
                 spacing: "40dp"
                 padding: "70dp"
+                
 """
 
 class FirstPage(Screen):
@@ -345,34 +363,30 @@ sm.add_widget(PrinterPage(name='printer'))
 sm.add_widget(FirstPage(name='Signup'))
 class MyApp(MDApp):
     screen = Screen()
-    config={
-        "apiKey": "AIzaSyDqyR1lzvY-SzZ6-30yL7LQZ5IrmcEsRQQ",
-        "authDomain": "dvis-ff74a.firebaseapp.com",
-        "databaseURL": "https://dvis-ff74a-default-rtdb.firebaseio.com",
-        "projectId": "dvis-ff74a",
-        "storageBucket": "dvis-ff74a.appspot.com",
-        "messagingSenderId": "282026381544",
-        "appId": "1:282026381544:web:173ef9fd4c7fef4a43795d",
-        "measurementId": "G-0B9MLSDQ33",
-        "serviceAccount": "dvis-ff74a-firebase-adminsdk-31g83-5cae6c3910.json",
-        "databaseURL": "https://dvis-ff74a-default-rtdb.firebaseio.com/"
-    }
-    firebase=pyrebase.initialize_app(config)
+    cred = credentials.Certificate("dvis-ff74a-firebase-adminsdk-31g83-5cae6c3910.json")
+    initialize_app(cred, {'storageBucket': 'dvis-ff74a.appspot.com',
+                          'databaseURL': "https://dvis-ff74a-default-rtdb.firebaseio.com/"
+                          })
     '''
-    data={
-        'Email':'areenaldda@gmail.com',
-        'Password':'Aa212654'
+    cred_obj = firebase_admin.credentials.Certificate("dvis-ff74a-firebase-adminsdk-31g83-5cae6c3910.json")
+    default_app = firebase_admin.initialize_app(cred_obj, {
+        'databaseURL': "https://dvis-ff74a-default-rtdb.firebaseio.com/"
+    })'''
+    '''
+    from firebase import firebase
+    firebase = firebase.FirebaseApplication('https://dvis-ff74a-default-rtdb.firebaseio.com', None)
+    data = {
+        'Email': "areenal",
+        'Password': "12345",
+        'user': 1
     }
-    firebase.post('https://dvis-ff74a-default-rtdb.firebaseio.com/Users',data)
-
-    
+    firebase.post('https://dvis-ff74a-default-rtdb.firebaseio.com/Users', data)
     #Get Data
-    
+   
     result=firebase.get('https://dvis-ff74a-default-rtdb.firebaseio.com/Users','')
     for i in result.keys():
         print(result[i]['Email'])
     '''
-
 
     def build(self):
         self.imagePath = ''
@@ -453,29 +467,77 @@ class MyApp(MDApp):
         from firebase import firebase
         firebase = firebase.FirebaseApplication('https://dvis-ff74a-default-rtdb.firebaseio.com', None)
         result = firebase.get('https://dvis-ff74a-default-rtdb.firebaseio.com/Users', '')
+        prints = firebase.get('https://dvis-ff74a-default-rtdb.firebaseio.com/Prints', '')
         for i in result.keys():
-            if result[i]['Email']==mail:
+            if result[i]['Email']== mail:
                 if result[i]['Password']==pas:
                     if result[i]['user']==0:
                         self.user=mail
                         print(self.user+" Logged In!")
+                        grid = GridLayout(cols=2, size_hint_y=None)
+                        grid.row_force_default = True
+                        grid.row_default_height = 200
+                        for b in prints.keys():
+                            if prints[b]['send']==self.user:
+                                image = AsyncImage(source=prints[b]['file'], height=200)
+                                grid.add_widget(image)
+                                grid.bind(minimum_height=grid.setter('height'))
+                        # create the input text field
+                        # add the grid and input text field to the list view layout
+                        self.root.screens[1].ids.scroll.add_widget(grid)
                         self.root.current = 'First'
                     else:
+                        grid = GridLayout(cols=2,  size_hint_y=None)
+                        grid.row_force_default = True
+                        grid.row_default_height = 200
+
+                        # set the height of the grid to be the sum of its children
+
+                        for c in prints.keys():
+                            title_label = MDLabel(text=prints[c]['send'],  height=40,pos_hint={"center_x":0.1})
+
+                            # create the image for the item
+                            image = AsyncImage(source=prints[c]['file'], height=200)
+
+                            # add the label and image to the grid
+                            grid.add_widget(title_label)
+                            grid.add_widget(image)
+
+                            print(prints[c]['file'])
+                            '''a=result[i]['file']
+                            bb=MDLabel(text=result[i]['send'], x='0.2')
+                            xx=AsyncImage(source=a)
+                            #self.root.screens[4].ids.ll.add_widget(xx)'''
+
+                        grid.bind(minimum_height=grid.setter('height'))
+                        # create the input text field
+                        input_text = TextInput(multiline=False, size_hint_y=None, height=30)
+
+                        # add the grid and input text field to the list view layout
+                        self.root.screens[4].ids.kk.add_widget(grid)
+                        #self.root.screens[4].ids.kk.add_widget(input_text)
                         self.root.current = 'printer'
+                        print('123')
+
+
 
     def send(self):
-        plyer.notification.notify(title="My App",message="TTTTT")
         from firebase import firebase
-        firebase = firebase.FirebaseApplication('https://dvis-ff74a-default-rtdb.firebaseio.com', None)
-        storage=firebase.storage()
-        imgg="test.png"
-        storage.child(imgg).put(imgg)
+        plyer.notification.notify(title="My App",message="TTTTT")
+        bucket = storage.bucket()
+        fileName = self.imagePath
+        blob = bucket.blob(fileName)
+        blob.upload_from_filename(fileName)
+        # Opt : if you want to                                       make public access from the URL
+        blob.make_public()
+        print("your file url", blob.public_url)
         data = {
-            'file': self.imagePath,
+            'file': blob.public_url,
             'send': self.user,
             'IsDone': 1,
             'time': " "
         }
+        firebase = firebase.FirebaseApplication('https://diatrack-48525.firebaseio.com/', authentication=None)
         firebase.post('https://dvis-ff74a-default-rtdb.firebaseio.com/Prints', data)
 
 
