@@ -207,7 +207,7 @@ ScreenManager:
         pos_hint:{"top":1}
     MDFloatLayout:
         MDLabel:
-            text:"fill your data to signup"
+            text:"data for print"
             pos_hint:{"center_x":0.835,"center_y":0.86}
             theme_text_color: "Custom"
             text_color: (200, 140, 140)
@@ -225,6 +225,7 @@ ScreenManager:
 <FirstPage>:
     name: 'First'
     MDBottomNavigation:
+        id:bottom_navigation
         MDBottomNavigationItem:
             name: "screen1"
             text: "Converting"
@@ -273,7 +274,7 @@ ScreenManager:
                 title:"Image to STL"
                 pos_hint:{"top":1}
             MDLabel:
-                text:"the stl files you have converted"
+                text:"the images you have converted"
                 pos_hint:{"center_x":0.75,"center_y":0.8}
                 theme_text_color: "Custom"
                 text_color: 200, 140, 140
@@ -283,12 +284,12 @@ ScreenManager:
                 pos_hint:{"center_y":.22}
                 top: 20
                 id:scroll
-
+                
         MDBottomNavigationItem:
             name: "screen4"
             text: "LogOut"
             icon: "logout"
-            on_enter: root.manager.current = 'Login';
+            on_enter: root.manager.current = 'Login'
 
 <SecondPage>:
     name: 'Second'
@@ -395,6 +396,8 @@ class MyApp(MDApp):
         self.temp = ''
         self.DestDir = os.getcwd()
         self.images=[]
+        self.history=[]
+        self.async_images=[]
         self.theme_cls.primary_palette = "Teal"
         self.toolbar = MDTopAppBar(title="Image to STL")
         self.toolbar.pos_hint = {"top": 1}
@@ -402,7 +405,6 @@ class MyApp(MDApp):
         screen = Builder.load_string(screen_helper)
         return screen
     def btnfunc(self):
-
         self.root.screens[2].ids.img.source = self.imagepdf
         print("button is pressed!!")
         print(self.imagePath)
@@ -478,16 +480,26 @@ class MyApp(MDApp):
                         grid.row_force_default = True
                         grid.row_default_height = 200
                         for b in prints.keys():
-                            if prints[b]['send']==self.user:
-                                image = AsyncImage(source=prints[b]['file'], height=200)
-                                grid.add_widget(image)
-                                grid.bind(minimum_height=grid.setter('height'))
+                            if prints[b]['send'] == self.user:
+                                self.history.append(prints[b]['file'])
+
+                        for i, a in enumerate(self.history):
+                            image = AsyncImage(source=a)
+                            #image.bind(on_touch_down=self.mess(i))
+                            image.bind(on_touch_down=self.on_async_image_press)
+                            self.async_images.append(image)
+                            '''image = Button(text=" ",background_normal=prints[b]['file'], height=200)
+                            image.bind(on_press=lambda x, i=i: self.mess(i))
+                            '''
+                            grid.add_widget(image)
+                            grid.bind(minimum_height=grid.setter('height'))
                         # create the input text field
                         # add the grid and input text field to the list view layout
                         self.root.screens[1].ids.scroll.add_widget(grid)
                         self.root.current = 'First'
+
                     else:
-                        grid = GridLayout(cols=2,  size_hint_y=None)
+                        grid = GridLayout(cols=3,  size_hint_y=None)
                         grid.row_force_default = True
                         grid.row_default_height = 200
 
@@ -498,12 +510,15 @@ class MyApp(MDApp):
 
                             # create the image for the item
                             image = AsyncImage(source=prints[c]['file'], height=200)
+                            mess = Button(background_normal='mes.png',size_hint={.35,.096},pos_hint={"center_x":.5,"center_y":.12})
 
+                            mess.bind(on_press=lambda x,i=i:self.mess(i))
                             # add the label and image to the grid
+                            grid.add_widget(mess)
                             grid.add_widget(title_label)
                             grid.add_widget(image)
 
-                            print(prints[c]['file'])
+
                             '''a=result[i]['file']
                             bb=MDLabel(text=result[i]['send'], x='0.2')
                             xx=AsyncImage(source=a)
@@ -517,13 +532,25 @@ class MyApp(MDApp):
                         self.root.screens[4].ids.kk.add_widget(grid)
                         #self.root.screens[4].ids.kk.add_widget(input_text)
                         self.root.current = 'printer'
-                        print('123')
 
+    def on_async_image_press(self, instance, touch):
+        for i, async_image in enumerate(self.async_images):
+            if async_image.collide_point(*touch.pos):
+                # Perform actions when the AsyncImage is pressed
+                print(self.history[i])
 
+                import requests
+                img_data = requests.get(self.history[i]).content
+                with open('image_name.jpg', 'wb') as handler:
+                    handler.write(img_data)
+                self.root.screens[1].ids.abc.background_normal = 'image_name.jpg'
+                self.imagePath = 'image_name.jpg'
+                self.imagepdf = 'image_name.jpg'
+
+                self.root.screens[1].ids.bottom_navigation.switch_tab("screen1")
 
     def send(self):
         from firebase import firebase
-        plyer.notification.notify(title="My App",message="TTTTT")
         bucket = storage.bucket()
         fileName = self.imagePath
         blob = bucket.blob(fileName)
@@ -539,7 +566,8 @@ class MyApp(MDApp):
         }
         firebase = firebase.FirebaseApplication('https://diatrack-48525.firebaseio.com/', authentication=None)
         firebase.post('https://dvis-ff74a-default-rtdb.firebaseio.com/Prints', data)
-
-
+    def mess(self,i):
+        plyer.notification.notify(title="My App",message="TTTTT")
+        print('++++++',self.history[i])
 if __name__ == '__main__':
     MyApp().run()
