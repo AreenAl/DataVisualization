@@ -47,7 +47,7 @@ requirements = python3,kivy==2.1.0,kivymd==0.104.2,pillow==8.3.1
 presplash.filename = %(source.dir)s/imagesapk/apk.png
 
 # (str) Icon of the application
-icon.filename = %(source.dir)s/images/apk.png
+icon.filename = %(source.dir)s/imagesapk/apk.png
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
 orientation = portrait
