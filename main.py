@@ -2,6 +2,8 @@ import glob
 import plyer
 from firebase import firebase
 from firebase_admin import credentials, initialize_app, storage
+from kivy.graphics import Color, Line
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import AsyncImage, Image
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen, ScreenManager
@@ -11,14 +13,17 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivymd.uix.screen import MDScreen
+from kivymd.uix.dialog import MDDialog
 from kivymd.app import MDApp
 from kivy.core.text import LabelBase
-from kivymd.uix.button import MDFlatButton, MDFillRoundFlatButton
+from kivymd.uix.button import MDFlatButton, MDFillRoundFlatButton, MDTextButton, MDRectangleFlatButton
 from kivymd.uix.toolbar import MDTopAppBar
 from plyer import filechooser
 from kivy.lang import Builder
 from Converter import ImageConverter, PDFConverter
 import os, shutil
+from kivy.utils import get_color_from_hex
+
 
 screen_helper = """
 #:import Label kivy.uix.label.Label
@@ -252,7 +257,7 @@ ScreenManager:
                 on_press:
                     app.btnfunc();
                     if '.pdf' in app.imagePath: root.manager.current = 'Third';
-
+                    
         MDBottomNavigationItem:
             name: "screen2"
             text: "Chat"
@@ -266,6 +271,20 @@ ScreenManager:
                 theme_text_color: "Custom"
                 text_color: 200, 140, 140
                 font_size:"25"
+            ScrollView:
+                size: self.size
+                GridLayout:
+                    id: amma
+                    cols: 2
+                    row_force_default: True
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: 200
+                    top: self.height
+                    spacing: "40dp"
+                    padding: "70dp"
+            
+                
         MDBottomNavigationItem:
             name: "screen3"
             text: "History"
@@ -470,6 +489,8 @@ class MyApp(MDApp):
         firebase = firebase.FirebaseApplication('https://dvis-ff74a-default-rtdb.firebaseio.com', None)
         result = firebase.get('https://dvis-ff74a-default-rtdb.firebaseio.com/Users', '')
         prints = firebase.get('https://dvis-ff74a-default-rtdb.firebaseio.com/Prints', '')
+        chats = firebase.get('https://dvis-ff74a-default-rtdb.firebaseio.com/Chats', '')
+
         for i in result.keys():
             if result[i]['Email']== mail:
                 if result[i]['Password']==pas:
@@ -482,7 +503,6 @@ class MyApp(MDApp):
                         for b in prints.keys():
                             if prints[b]['send'] == self.user:
                                 self.history.append(prints[b]['file'])
-
                         for i, a in enumerate(self.history):
                             image = AsyncImage(source=a)
                             #image.bind(on_touch_down=self.mess(i))
@@ -497,37 +517,40 @@ class MyApp(MDApp):
                         # add the grid and input text field to the list view layout
                         self.root.screens[1].ids.scroll.add_widget(grid)
                         self.root.current = 'First'
+                        for a in chats.keys():
+                            if chats[a]['username']==self.user:
+                                title_label = MDLabel(text=chats[a]['message'], font_size="100", halign='center')
+                                self.root.screens[1].ids.amma.add_widget(title_label)
 
                     else:
-                        grid = GridLayout(cols=3,  size_hint_y=None)
+                        grid = GridLayout(cols=3)
                         grid.row_force_default = True
                         grid.row_default_height = 200
 
                         # set the height of the grid to be the sum of its children
-
                         for c in prints.keys():
-                            title_label = MDLabel(text=prints[c]['send'],  height=40,pos_hint={"center_x":0.1})
+                            if prints[c]['IsDone']==1:
+                                title_label = MDLabel(text=prints[c]['send'], font_size="50", halign='center')
+                                usern = prints[c]['send']
+                                # create the image for the item
+                                image = AsyncImage(source=prints[c]['file'])
+                                # mess = Button(background_normal='mes.png',size_hint= {.54, .5},height=10)
+                                mess = MDRectangleFlatButton(text='Send', pos_hint={"center_y": 0.055})
+                                mess.bind(on_press=lambda x: self.mess(usern))
+                                #mess.bind(on_press=lambda a: prints[c]['IsDone']=0)
 
-                            # create the image for the item
-                            image = AsyncImage(source=prints[c]['file'], height=200)
-                            mess = Button(background_normal='mes.png',size_hint={.35,.096},pos_hint={"center_x":.5,"center_y":.12})
-
-                            mess.bind(on_press=lambda x,i=i:self.mess(i))
-                            # add the label and image to the grid
-                            grid.add_widget(mess)
-                            grid.add_widget(title_label)
-                            grid.add_widget(image)
-
+                                # add the label and image to the grid
+                                grid.add_widget(mess)
+                                grid.add_widget(title_label)
+                                grid.add_widget(image)
+                                grid.bind(minimum_height=grid.setter('height'))
 
                             '''a=result[i]['file']
                             bb=MDLabel(text=result[i]['send'], x='0.2')
                             xx=AsyncImage(source=a)
                             #self.root.screens[4].ids.ll.add_widget(xx)'''
 
-                        grid.bind(minimum_height=grid.setter('height'))
                         # create the input text field
-                        input_text = TextInput(multiline=False, size_hint_y=None, height=30)
-
                         # add the grid and input text field to the list view layout
                         self.root.screens[4].ids.kk.add_widget(grid)
                         #self.root.screens[4].ids.kk.add_widget(input_text)
@@ -566,8 +589,57 @@ class MyApp(MDApp):
         }
         firebase = firebase.FirebaseApplication('https://diatrack-48525.firebaseio.com/', authentication=None)
         firebase.post('https://dvis-ff74a-default-rtdb.firebaseio.com/Prints', data)
-    def mess(self,i):
-        plyer.notification.notify(title="My App",message="TTTTT")
-        print('++++++',self.history[i])
+    def mess(self,username):
+        #plyer.notification.notify(title="My App",message="TTTTT")
+
+        send=MDFlatButton(text="Send")
+        close=MDFlatButton(text="Close")
+        self.set_button_background_color(send, (0, 0.5, 0.5, 1))  # Teal color
+        self.set_button_background_color(close, (0, 0.5, 0.5, 1))  # Red color
+
+        text_input = TextInput(hint_text="Enter your message", multiline=False)
+        button_layout = BoxLayout(orientation='horizontal',size_hint_x=None, width=470, spacing=70)
+        button_layout.add_widget(Widget(size_hint_x=1))
+        button_layout.add_widget(send)
+        button_layout.add_widget(close)
+
+        content_layout = BoxLayout(orientation='vertical')
+        content_layout.add_widget(text_input)
+        content_layout.add_widget(button_layout)
+
+        self.dialog=Popup(title="Write Message  "
+                                "               ",
+                          size_hint=(0.9, 0.65),
+                          auto_dismiss=False,
+                          content=content_layout,
+                          background_color=get_color_from_hex("#CCCCCC"))  # Set the background color here        )
+        send.bind(on_release=lambda btn: self.send(btn, text_input.text,username))
+        close.bind(on_release=self.dialog.dismiss)
+        self.dialog.open()
+
+    def send(self,obj,text,user):
+        from firebase import firebase
+        firebase = firebase.FirebaseApplication('https://dvis-ff74a-default-rtdb.firebaseio.com', None)
+        data = {
+            'username': user,
+            'message': text
+        }
+        firebase.post('https://dvis-ff74a-default-rtdb.firebaseio.com/Chats', data)
+        self.dialog.dismiss()
+
+    def set_button_background_color(self,button, color):
+        button.background_color = color
+
+        def set_button_canvas_size(instance, value):
+            button.canvas.before.clear()
+            with button.canvas.before:
+                from kivy.graphics import Color
+                Color(*button.background_color)
+                from kivy.graphics import Rectangle
+                Rectangle(pos=button.pos, size=button.size)
+
+        button.bind(pos=set_button_canvas_size, size=set_button_canvas_size)
+
+
 if __name__ == '__main__':
     MyApp().run()
